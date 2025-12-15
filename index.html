@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathing Exercise</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .settings {
+            margin: 30px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        label {
+            font-size: 1.1em;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9em;
+        }
+
+        input {
+            padding: 12px 20px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.02);
+        }
+
+        .circle-container {
+            margin: 40px 0;
+            position: relative;
+            height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 1s ease-in-out;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+        }
+
+        .circle.inhale {
+            transform: scale(1.5);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .circle.hold {
+            transform: scale(1.5);
+            background: rgba(255, 200, 100, 0.5);
+        }
+
+        .circle.exhale {
+            transform: scale(1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .instruction {
+            font-size: 1.5em;
+            margin: 20px 0;
+            min-height: 40px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .counter {
+            font-size: 1.2em;
+            margin: 10px 0;
+            opacity: 0.8;
+        }
+
+        button {
+            padding: 15px 50px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 50px;
+            background: white;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Breathe</h1>
+        
+        <div id="settings" class="settings">
+            <div class="setting-group">
+                <label for="reps">Repetitions</label>
+                <input type="number" id="reps" value="10" min="1" max="20">
+            </div>
+            
+            <div class="setting-group">
+                <label for="inhale">Inhale (seconds)</label>
+                <input type="number" id="inhale" value="5" min="1" max="20">
+            </div>
+            
+            <div class="setting-group">
+                <label for="hold">Hold (seconds)</label>
+                <input type="number" id="hold" value="8" min="1" max="30">
+            </div>
+            
+            <div class="setting-group">
+                <label for="exhale">Exhale (seconds)</label>
+                <input type="number" id="exhale" value="8" min="1" max="30">
+            </div>
+        </div>
+
+        <div class="circle-container">
+            <div class="circle" id="circle"></div>
+        </div>
+
+        <div class="instruction" id="instruction">Ready to begin</div>
+        <div class="counter" id="counter"></div>
+
+        <button id="startBtn" onclick="startExercise()">Start</button>
+        <button id="stopBtn" class="hidden" onclick="stopExercise()">Stop</button>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let currentRep = 0;
+        let totalReps = 0;
+        let timeoutId = null;
+
+        function startExercise() {
+            if (isRunning) return;
+
+            isRunning = true;
+            currentRep = 0;
+            totalReps = parseInt(document.getElementById('reps').value);
+
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('stopBtn').classList.remove('hidden');
+            document.getElementById('settings').style.opacity = '0.5';
+            document.querySelectorAll('input').forEach(inp => inp.disabled = true);
+
+            runCycle();
+        }
+
+        function runCycle() {
+            if (!isRunning) return;
+
+            currentRep++;
+            if (currentRep > totalReps) {
+                completeExercise();
+                return;
+            }
+
+            const inhaleTime = parseInt(document.getElementById('inhale').value) * 1000;
+            const holdTime = parseInt(document.getElementById('hold').value) * 1000;
+            const exhaleTime = parseInt(document.getElementById('exhale').value) * 1000;
+
+            const circle = document.getElementById('circle');
+            const instruction = document.getElementById('instruction');
+            const counter = document.getElementById('counter');
+
+            counter.textContent = `Round ${currentRep} of ${totalReps}`;
+
+            // Inhale
+            instruction.textContent = 'Breathe In';
+            circle.className = 'circle inhale';
+
+            timeoutId = setTimeout(() => {
+                if (!isRunning) return;
+                // Hold
+                instruction.textContent = 'Hold';
+                circle.className = 'circle hold';
+
+                timeoutId = setTimeout(() => {
+                    if (!isRunning) return;
+                    // Exhale
+                    instruction.textContent = 'Breathe Out';
+                    circle.className = 'circle exhale';
+
+                    timeoutId = setTimeout(() => {
+                        if (!isRunning) return;
+                        runCycle();
+                    }, exhaleTime);
+                }, holdTime);
+            }, inhaleTime);
+        }
+
+        function stopExercise() {
+            isRunning = false;
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+
+            document.getElementById('circle').className = 'circle';
+            document.getElementById('instruction').textContent = 'Ready to begin';
+            document.getElementById('counter').textContent = '';
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('stopBtn').classList.add('hidden');
+            document.getElementById('settings').style.opacity = '1';
+            document.querySelectorAll('input').forEach(inp => inp.disabled = false);
+        }
+
+        function completeExercise() {
+            isRunning = false;
+            document.getElementById('circle').className = 'circle';
+            document.getElementById('instruction').textContent = 'Complete! Well done.';
+            document.getElementById('counter').textContent = '';
+            
+            setTimeout(() => {
+                document.getElementById('startBtn').classList.remove('hidden');
+                document.getElementById('stopBtn').classList.add('hidden');
+                document.getElementById('settings').style.opacity = '1';
+                document.querySelectorAll('input').forEach(inp => inp.disabled = false);
+                document.getElementById('instruction').textContent = 'Ready to begin';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
