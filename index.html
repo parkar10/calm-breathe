@@ -266,19 +266,20 @@
 
         .orb-label {
             font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+            font-size: clamp(1.4rem, 2.5vw, 2rem);
             font-weight: 400;
-            color: var(--text-muted);
+            color: var(--text-primary);
             letter-spacing: 0.2em;
             text-transform: uppercase;
-            text-shadow: 0 0 20px rgba(212, 165, 116, 0.4);
-            transition: color 0.5s ease;
+            text-shadow: 0 0 30px rgba(212, 165, 116, 0.6);
+            transition: color 0.5s ease, text-shadow 0.5s ease;
         }
 
-        .orb-label.inhale { color: var(--accent-warm); }
-        .orb-label.hold { color: var(--accent-gold); }
-        .orb-label.exhale { color: var(--text-muted); }
+        .orb-label.inhale { color: var(--accent-warm); text-shadow: 0 0 40px rgba(212, 165, 116, 0.8); }
+        .orb-label.hold { color: var(--accent-gold); text-shadow: 0 0 40px rgba(212, 165, 116, 0.8); }
+        .orb-label.exhale { color: var(--text-muted); text-shadow: 0 0 20px rgba(212, 165, 116, 0.3); }
         .orb-label.idle { color: var(--text-muted); }
+        .orb-label.complete { color: var(--accent-glow); text-shadow: 0 0 50px rgba(255, 236, 210, 0.8); }
 
         .vignette {
             position: fixed;
@@ -708,9 +709,6 @@
             pauseBtn.classList.add('hidden');
             pauseBtn.textContent = 'Pause';
             stopBtn.classList.add('hidden');
-            progressContainer.classList.remove('visible');
-            progressFill.style.width = '0%';
-            sessionFill.style.width = '0%';
         }
 
         function completeExercise() {
@@ -724,11 +722,7 @@
             breathPhase = 'idle';
             setOrbState('complete');
 
-            sessionFill.style.width = '100%';
-            sessionText.textContent = `Complete — ${totalReps} cycles`;
-
             completeMsg.classList.add('visible');
-            progressContainer.classList.remove('visible');
 
             setTimeout(() => {
                 controlsPanel.classList.remove('running');
