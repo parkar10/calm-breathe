@@ -3,211 +3,603 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Breathing Exercise</title>
+    <title>Breathe - 3D Landscape</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-deep: #0a0f1a;
+            --bg-mid: #141e30;
+            --accent-gold: #d4a574;
+            --accent-warm: #e8c4a0;
+            --accent-glow: #ffecd2;
+            --text-primary: #f5f0eb;
+            --text-muted: rgba(245, 240, 235, 0.6);
+            --glass-bg: rgba(20, 30, 48, 0.7);
+            --glass-border: rgba(212, 165, 116, 0.2);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg-deep);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: white;
         }
 
-        .container {
-            text-align: center;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            max-width: 500px;
-            width: 90%;
+        .title-area {
+            position: absolute;
+            left: 5%;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: all;
         }
 
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
+        .main-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(3rem, 8vw, 6rem);
             font-weight: 300;
-            letter-spacing: 2px;
+            color: var(--text-primary);
+            letter-spacing: 0.08em;
+            line-height: 0.9;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            text-shadow: 0 0 60px rgba(212, 165, 116, 0.3);
         }
 
-        .settings {
-            margin: 30px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .setting-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        label {
-            font-size: 1.1em;
-            font-weight: 500;
+        .subtitle {
+            font-size: clamp(0.7rem, 1.2vw, 0.9rem);
+            font-weight: 400;
+            color: var(--text-muted);
+            letter-spacing: 0.4em;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9em;
+            margin-top: 20px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
         }
 
-        input {
-            padding: 12px 20px;
-            font-size: 1.2em;
-            border: none;
-            border-radius: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+        .controls-panel {
+            position: absolute;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: all;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 30px 50px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            opacity: 1;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .controls-panel.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-50%) translateY(20px);
+        }
+
+        .controls-panel.collapsed {
+            padding: 20px 30px;
+        }
+
+        .settings-row {
+            display: flex;
+            gap: clamp(20px, 4vw, 50px);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-item label {
+            font-size: clamp(0.65rem, 1vw, 0.75rem);
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .setting-item input {
+            width: clamp(50px, 8vw, 70px);
+            padding: 10px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.2rem, 2vw, 1.5rem);
+            font-weight: 400;
             text-align: center;
+            background: rgba(212, 165, 116, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
             outline: none;
             transition: all 0.3s ease;
         }
 
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+        .setting-item input:focus {
+            border-color: var(--accent-gold);
+            background: rgba(212, 165, 116, 0.15);
         }
 
-        input:focus {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.02);
-        }
-
-        .circle-container {
-            margin: 40px 0;
-            position: relative;
-            height: 250px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .circle {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 1s ease-in-out;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
-        }
-
-        .circle.inhale {
-            transform: scale(1.5);
-            background: rgba(255, 255, 255, 0.5);
-        }
-
-        .circle.hold {
-            transform: scale(1.5);
-            background: rgba(255, 200, 100, 0.5);
-        }
-
-        .circle.exhale {
-            transform: scale(1);
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .instruction {
-            font-size: 1.5em;
-            margin: 20px 0;
-            min-height: 40px;
-            font-weight: 300;
-            letter-spacing: 1px;
-        }
-
-        .counter {
-            font-size: 1.2em;
-            margin: 10px 0;
-            opacity: 0.8;
-        }
-
-        button {
-            padding: 15px 50px;
-            font-size: 1.2em;
+        .btn-primary {
+            padding: 14px 45px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-warm) 100%);
+            color: var(--bg-deep);
             border: none;
             border-radius: 50px;
-            background: white;
-            color: #667eea;
             cursor: pointer;
-            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 20px rgba(212, 165, 116, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(212, 165, 116, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px) scale(1);
+        }
+
+        .btn-secondary {
+            padding: 10px 30px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: clamp(0.7rem, 1vw, 0.8rem);
+            font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 0.2em;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        .btn-secondary:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
         }
 
-        button:active {
-            transform: translateY(0);
+        .btn-group {
+            display: flex;
+            gap: 15px;
         }
 
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .complete-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 300;
+            color: var(--accent-glow);
+            letter-spacing: 0.2em;
+            text-shadow: 0 0 60px rgba(255, 236, 210, 0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
         }
 
-        .hidden {
-            display: none;
+        .complete-message.visible {
+            opacity: 1;
+        }
+
+        .orb-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 8;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .orb-wrap {
+            position: relative;
+            width: clamp(100px, 15vw, 160px);
+            height: clamp(100px, 15vw, 160px);
+        }
+
+        #orb {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .orb-label {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+            font-weight: 400;
+            color: var(--text-muted);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(212, 165, 116, 0.4);
+            transition: color 0.5s ease;
+        }
+
+        .orb-label.inhale { color: var(--accent-warm); }
+        .orb-label.hold { color: var(--accent-gold); }
+        .orb-label.exhale { color: var(--text-muted); }
+        .orb-label.idle { color: var(--text-muted); }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(10, 15, 26, 0.7) 100%);
+            z-index: 5;
+        }
+
+        .grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.04;
+            z-index: 6;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        @media (max-width: 768px) {
+            .main-title {
+                writing-mode: horizontal-tb;
+                transform: none;
+                font-size: clamp(2rem, 6vw, 3rem);
+            }
+            .subtitle {
+                writing-mode: horizontal-tb;
+                transform: none;
+            }
+            .title-area {
+                top: 5%;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            .breath-ui {
+                right: 50%;
+                top: 20%;
+                transform: translateX(50%);
+            }
+            .settings-row {
+                gap: 15px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Breathe</h1>
-        
-        <div id="settings" class="settings">
-            <div class="setting-group">
-                <label for="reps">Repetitions</label>
-                <input type="number" id="reps" value="10" min="1" max="20">
-            </div>
-            
-            <div class="setting-group">
-                <label for="inhale">Inhale (seconds)</label>
-                <input type="number" id="inhale" value="5" min="1" max="20">
-            </div>
-            
-            <div class="setting-group">
-                <label for="hold">Hold (seconds)</label>
-                <input type="number" id="hold" value="8" min="1" max="30">
-            </div>
-            
-            <div class="setting-group">
-                <label for="exhale">Exhale (seconds)</label>
-                <input type="number" id="exhale" value="8" min="1" max="30">
-            </div>
+    <div id="canvas-container"></div>
+    <div class="vignette"></div>
+    <div class="grain"></div>
+
+    <div class="orb-container">
+        <div class="orb-wrap">
+            <canvas id="orb" width="160" height="160"></canvas>
         </div>
-
-        <div class="circle-container">
-            <div class="circle" id="circle"></div>
-        </div>
-
-        <div class="instruction" id="instruction">Ready to begin</div>
-        <div class="counter" id="counter"></div>
-
-        <button id="startBtn" onclick="startExercise()">Start</button>
-        <button id="stopBtn" class="hidden" onclick="stopExercise()">Stop</button>
+        <div class="orb-label idle" id="orbLabel">Ready</div>
     </div>
 
+    <div class="overlay">
+        <div class="title-area">
+            <h1 class="main-title">Breathe</h1>
+            <p class="subtitle">Find your calm</p>
+        </div>
+
+        <div class="complete-message" id="completeMsg">Complete</div>
+
+        <div class="controls-panel" id="controlsPanel">
+            <div class="settings-row">
+                <div class="setting-item">
+                    <label>Reps</label>
+                    <input type="number" id="reps" value="8" min="1" max="20">
+                </div>
+                <div class="setting-item">
+                    <label>Inhale</label>
+                    <input type="number" id="inhale" value="4" min="1" max="20">
+                </div>
+                <div class="setting-item">
+                    <label>Hold</label>
+                    <input type="number" id="hold" value="4" min="1" max="30">
+                </div>
+                <div class="setting-item">
+                    <label>Exhale</label>
+                    <input type="number" id="exhale" value="6" min="1" max="30">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-primary" id="startBtn">Begin</button>
+                <button class="btn-secondary hidden" id="stopBtn">Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
+        // Three.js Scene Setup
+        let scene, camera, renderer, landscape;
+        let particles, stars;
+        let time = 0;
+        let breathScale = 1;
+        let breathPhase = 'idle';
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x0a0f1a, 0.015);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 8, 25);
+            camera.lookAt(0, 2, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            createLandscape();
+            createStars();
+            createParticles();
+            createLighting();
+
+            window.addEventListener('resize', onResize);
+            animate();
+        }
+
+        function createLandscape() {
+            const geometry = new THREE.PlaneGeometry(120, 80, 150, 100);
+
+            const positions = geometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                const x = positions[i];
+                const y = positions[i + 1];
+                const dist = Math.sqrt(x * x + y * y);
+                positions[i + 2] =
+                    Math.sin(x * 0.08) * 2 +
+                    Math.sin(y * 0.06 + x * 0.04) * 3 +
+                    Math.sin(x * 0.03 + y * 0.05) * 4 +
+                    Math.cos(dist * 0.1) * 1.5;
+            }
+            geometry.computeVertexNormals();
+
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x1a2a4a,
+                roughness: 0.85,
+                metalness: 0.1,
+                flatShading: true,
+            });
+
+            landscape = new THREE.Mesh(geometry, material);
+            landscape.rotation.x = -Math.PI / 2;
+            landscape.position.y = -2;
+            scene.add(landscape);
+
+            // Mountains in background
+            const mountainGeo = new THREE.ConeGeometry(25, 20, 6);
+            const mountainMat = new THREE.MeshStandardMaterial({
+                color: 0x141e30,
+                roughness: 0.9,
+                flatShading: true,
+            });
+
+            const mountainPositions = [
+                [-40, 5, -30], [-20, 8, -35], [0, 12, -38], [25, 7, -32], [45, 6, -28]
+            ];
+
+            mountainPositions.forEach(([x, y, z]) => {
+                const mountain = new THREE.Mesh(mountainGeo, mountainMat);
+                mountain.position.set(x, y, z);
+                mountain.rotation.y = Math.random() * Math.PI;
+                scene.add(mountain);
+            });
+        }
+
+        function createStars() {
+            const starGeo = new THREE.BufferGeometry();
+            const starCount = 2000;
+            const positions = new Float32Array(starCount * 3);
+
+            for (let i = 0; i < starCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 200;
+                positions[i + 1] = Math.random() * 80 + 10;
+                positions[i + 2] = (Math.random() - 0.5) * 200 - 40;
+            }
+
+            starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const starMat = new THREE.PointsMaterial({
+                color: 0xf5f0eb,
+                size: 0.15,
+                transparent: true,
+                opacity: 0.6,
+            });
+
+            stars = new THREE.Points(starGeo, starMat);
+            scene.add(stars);
+        }
+
+        function createParticles() {
+            const particleGeo = new THREE.BufferGeometry();
+            const particleCount = 500;
+            const positions = new Float32Array(particleCount * 3);
+            const sizes = new Float32Array(particleCount);
+
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 100;
+                positions[i * 3 + 1] = Math.random() * 30;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 80;
+                sizes[i] = Math.random() * 2 + 0.5;
+            }
+
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const particleMat = new THREE.PointsMaterial({
+                color: 0xd4a574,
+                size: 0.08,
+                transparent: true,
+                opacity: 0.4,
+            });
+
+            particles = new THREE.Points(particleGeo, particleMat);
+            scene.add(particles);
+        }
+
+        function createLighting() {
+            const ambient = new THREE.AmbientLight(0x141e30, 0.4);
+            scene.add(ambient);
+
+            const moonLight = new THREE.DirectionalLight(0xd4a574, 0.6);
+            moonLight.position.set(20, 30, 10);
+            scene.add(moonLight);
+
+            const fillLight = new THREE.PointLight(0xe8c4a0, 0.3, 50);
+            fillLight.position.set(-15, 10, 5);
+            scene.add(fillLight);
+        }
+
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.005;
+
+            // Animate landscape terrain
+            if (landscape) {
+                const positions = landscape.geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    const x = positions[i];
+                    const y = positions[i + 1];
+                    const originalHeight =
+                        Math.sin(x * 0.08) * 2 +
+                        Math.sin(y * 0.06 + x * 0.04) * 3 +
+                        Math.sin(x * 0.03 + y * 0.05) * 4 +
+                        Math.cos(Math.sqrt(x * x + y * y) * 0.1) * 1.5;
+
+                    const breathWave = Math.sin(time * 2 + x * 0.1) * 0.3 * (breathScale - 1);
+                    positions[i + 2] = originalHeight + breathWave;
+                }
+                landscape.geometry.computeVertexNormals();
+            }
+
+            // Animate particles
+            if (particles) {
+                particles.rotation.y += 0.0003;
+                const positions = particles.geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    positions[i + 1] += Math.sin(time + i) * 0.002;
+                }
+                particles.geometry.attributes.position.needsUpdate = true;
+            }
+
+            // Animate stars
+            if (stars) {
+                stars.rotation.y += 0.0001;
+            }
+
+            // Camera subtle movement based on breath
+            const targetY = 8 + (breathScale - 1) * 2;
+            camera.position.y += (targetY - camera.position.y) * 0.05;
+
+            renderer.render(scene, camera);
+        }
+
+        // Breathing Exercise Logic
         let isRunning = false;
         let currentRep = 0;
         let totalReps = 0;
         let timeoutId = null;
+
+        const controlsPanel = document.getElementById('controlsPanel');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const completeMsg = document.getElementById('completeMsg');
+
+        function animatePhase(duration, phase) {
+            const startTime = Date.now();
+            const totalDuration = duration * 1000;
+
+            const phaseInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / totalDuration, 1);
+
+                if (phase === 'inhale') {
+                    breathScale = 1 + progress * 0.5;
+                    breathPhase = 'inhale';
+                    setOrbState('inhale');
+                } else if (phase === 'exhale') {
+                    breathScale = 1.5 - progress * 0.5;
+                    breathPhase = 'exhale';
+                    setOrbState('exhale');
+                } else {
+                    breathPhase = 'hold';
+                    setOrbState('hold');
+                }
+
+                if (progress >= 1) {
+                    clearInterval(phaseInterval);
+                }
+            }, 16);
+        }
 
         function startExercise() {
             if (isRunning) return;
@@ -216,10 +608,11 @@
             currentRep = 0;
             totalReps = parseInt(document.getElementById('reps').value);
 
-            document.getElementById('startBtn').classList.add('hidden');
-            document.getElementById('stopBtn').classList.remove('hidden');
-            document.getElementById('settings').style.opacity = '0.5';
-            document.querySelectorAll('input').forEach(inp => inp.disabled = true);
+            controlsPanel.classList.add('collapsed');
+            startBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+            completeMsg.classList.remove('visible');
+            setOrbState('inhale');
 
             runCycle();
         }
@@ -233,69 +626,166 @@
                 return;
             }
 
-            const inhaleTime = parseInt(document.getElementById('inhale').value) * 1000;
-            const holdTime = parseInt(document.getElementById('hold').value) * 1000;
-            const exhaleTime = parseInt(document.getElementById('exhale').value) * 1000;
-
-            const circle = document.getElementById('circle');
-            const instruction = document.getElementById('instruction');
-            const counter = document.getElementById('counter');
-
-            counter.textContent = `Round ${currentRep} of ${totalReps}`;
+            const inhaleTime = parseInt(document.getElementById('inhale').value);
+            const holdTime = parseInt(document.getElementById('hold').value);
+            const exhaleTime = parseInt(document.getElementById('exhale').value);
 
             // Inhale
-            instruction.textContent = 'Breathe In';
-            circle.className = 'circle inhale';
+            animatePhase(inhaleTime, 'inhale');
 
             timeoutId = setTimeout(() => {
                 if (!isRunning) return;
+
                 // Hold
-                instruction.textContent = 'Hold';
-                circle.className = 'circle hold';
+                animatePhase(holdTime, 'hold');
 
                 timeoutId = setTimeout(() => {
                     if (!isRunning) return;
+
                     // Exhale
-                    instruction.textContent = 'Breathe Out';
-                    circle.className = 'circle exhale';
+                    animatePhase(exhaleTime, 'exhale');
 
                     timeoutId = setTimeout(() => {
                         if (!isRunning) return;
                         runCycle();
-                    }, exhaleTime);
-                }, holdTime);
-            }, inhaleTime);
+                    }, exhaleTime * 1000);
+                }, holdTime * 1000);
+            }, inhaleTime * 1000);
         }
 
         function stopExercise() {
             isRunning = false;
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
+            if (timeoutId) clearTimeout(timeoutId);
 
-            document.getElementById('circle').className = 'circle';
-            document.getElementById('instruction').textContent = 'Ready to begin';
-            document.getElementById('counter').textContent = '';
-            document.getElementById('startBtn').classList.remove('hidden');
-            document.getElementById('stopBtn').classList.add('hidden');
-            document.getElementById('settings').style.opacity = '1';
-            document.querySelectorAll('input').forEach(inp => inp.disabled = false);
+            breathScale = 1;
+            breathPhase = 'idle';
+            setOrbState('idle');
+
+            controlsPanel.classList.remove('collapsed');
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
         }
 
         function completeExercise() {
             isRunning = false;
-            document.getElementById('circle').className = 'circle';
-            document.getElementById('instruction').textContent = 'Complete! Well done.';
-            document.getElementById('counter').textContent = '';
-            
+            if (timeoutId) clearTimeout(timeoutId);
+
+            breathScale = 1;
+            breathPhase = 'idle';
+            setOrbState('complete');
+
+            completeMsg.classList.add('visible');
+
             setTimeout(() => {
-                document.getElementById('startBtn').classList.remove('hidden');
-                document.getElementById('stopBtn').classList.add('hidden');
-                document.getElementById('settings').style.opacity = '1';
-                document.querySelectorAll('input').forEach(inp => inp.disabled = false);
-                document.getElementById('instruction').textContent = 'Ready to begin';
-            }, 2000);
+                controlsPanel.classList.remove('collapsed');
+                startBtn.classList.remove('hidden');
+                stopBtn.classList.add('hidden');
+                completeMsg.classList.remove('visible');
+                setOrbState('idle');
+            }, 3000);
         }
+
+        startBtn.addEventListener('click', startExercise);
+        stopBtn.addEventListener('click', stopExercise);
+
+        // Orb Animation
+        const orbCanvas = document.getElementById('orb');
+        const orbCtx = orbCanvas.getContext('2d');
+        const orbCx = 80, orbCy = 80;
+        let orbTime = 0;
+        let orbState = 'idle';
+
+        const orbLabels = { idle: 'Ready', inhale: 'Breathe In', hold: 'Hold', exhale: 'Breathe Out' };
+
+        const orbPalettes = {
+            idle:    [['#d4a574','#b8956a','#e8c4a0'], ['#c49a6c','#a08060','#d4a574']],
+            inhale:  [['#7af3ff','#3ec6ff','#a0e8ff'], ['#00bfff','#0090d0','#40d0ff']],
+            hold:    [['#ffecd2','#ffcc80','#ffd699'], ['#ffb74d','#ff9800','#ffc107']],
+            exhale:  [['#c8c8c8','#a0a0a0','#d4d4d4'], ['#b0b0b0','#888888','#c0c0c0']],
+            complete: [['#9b8fff','#c084fc','#7c3aed'], ['#a855f7','#7c3aed','#c084fc']],
+        };
+
+        function setOrbState(state) {
+            orbState = state;
+            const orbLabel = document.getElementById('orbLabel');
+            orbLabel.textContent = orbLabels[state] || 'Ready';
+            orbLabel.className = 'orb-label ' + state;
+        }
+
+        function drawOrbBlob(ctx, cx, cy, r, pts, phase, twist, color) {
+            ctx.beginPath();
+            for (let i = 0; i <= pts; i++) {
+                const angle = (i / pts) * Math.PI * 2;
+                const noise = Math.sin(angle * 3 + phase) * 0.18 + Math.sin(angle * 5 + phase * 1.3) * 0.09 + Math.sin(angle * 7 + phase * 0.7) * 0.05;
+                const rr = r * (1 + noise);
+                const a = angle + twist;
+                const x = cx + Math.cos(a) * rr;
+                const y = cy + Math.sin(a) * rr;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        function hex(c, a) {
+            const h = Math.round(a * 255).toString(16).padStart(2, '0');
+            return c + h;
+        }
+
+        function drawOrb() {
+            orbCtx.clearRect(0, 0, 160, 160);
+            const pal = orbPalettes[orbState] || orbPalettes.idle;
+
+            let scale = 1, speed = 1, alpha1 = 0.55, alpha2 = 0.45, alpha3 = 0.35;
+            let twist1 = 0, twist2 = 0;
+
+            if (orbState === 'idle') {
+                scale = 1 + Math.sin(orbTime * 0.4) * 0.03;
+                speed = 0.4;
+            } else if (orbState === 'inhale') {
+                scale = 1 + Math.sin(orbTime * 1.5) * 0.08;
+                speed = 1.2; alpha1 = 0.7;
+                twist1 = Math.sin(orbTime * 0.8) * 0.2;
+            } else if (orbState === 'hold') {
+                scale = 1.08 + Math.sin(orbTime * 0.5) * 0.02;
+                speed = 0.5;
+                twist1 = orbTime * 0.2;
+                twist2 = -orbTime * 0.15;
+                alpha2 = 0.5; alpha3 = 0.4;
+            } else if (orbState === 'exhale') {
+                scale = 1.05 + Math.abs(Math.sin(orbTime * 0.8)) * 0.04;
+                speed = 0.6; alpha1 = 0.6;
+            } else if (orbState === 'complete') {
+                scale = 1 + Math.sin(orbTime * 1) * 0.05;
+                speed = 0.8;
+                twist1 = orbTime * 0.3;
+            }
+
+            const r = 54 * scale;
+            const r2 = 44 * scale;
+            const r3 = 36 * scale;
+
+            drawOrbBlob(orbCtx, orbCx, orbCy, r, 80, orbTime * speed, twist1, hex(pal[0][0], alpha1));
+            drawOrbBlob(orbCtx, orbCx + Math.sin(orbTime * 0.5) * 4 * scale, orbCy + Math.cos(orbTime * 0.5) * 4 * scale, r2, 80, -orbTime * speed * 0.9 + 1, twist2, hex(pal[0][1], alpha2));
+            drawOrbBlob(orbCtx, orbCx + Math.cos(orbTime * 0.7) * 6 * scale, orbCy + Math.sin(orbTime * 0.7) * 6 * scale, r3, 80, orbTime * speed * 1.2 + 2.1, 0, hex(pal[0][2], alpha3));
+
+            const grd = orbCtx.createRadialGradient(orbCx - 18 * scale, orbCy - 18 * scale, 2, orbCx, orbCy, r * 1.1);
+            grd.addColorStop(0, hex(pal[1][2], 0.6));
+            grd.addColorStop(0.5, hex(pal[1][0], 0.15));
+            grd.addColorStop(1, 'rgba(0,0,0,0)');
+            orbCtx.save();
+            orbCtx.globalCompositeOperation = 'lighter';
+            drawOrbBlob(orbCtx, orbCx, orbCy, r * 0.7, 80, orbTime * speed * 0.5, 0, hex(pal[1][2], 0.18));
+            orbCtx.restore();
+
+            orbTime += 0.018;
+            requestAnimationFrame(drawOrb);
+        }
+
+        drawOrb();
+
+        init();
     </script>
 </body>
 </html>
