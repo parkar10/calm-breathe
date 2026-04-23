@@ -280,72 +280,6 @@
         .orb-label.exhale { color: var(--text-muted); }
         .orb-label.idle { color: var(--text-muted); }
 
-        /* Progress sits inline below the orb */
-        .progress-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            pointer-events: none;
-            width: 100%;
-        }
-
-        .progress-container.visible {
-            opacity: 1;
-        }
-
-        .progress-bar {
-            width: clamp(180px, 28vw, 260px);
-            height: 5px;
-            background: rgba(212, 165, 116, 0.2);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, var(--accent-gold), var(--accent-warm), var(--accent-glow));
-            border-radius: 3px;
-            /* Smooth transition for phase bar; session bar uses JS */
-            transition: width 0.3s ease;
-            box-shadow: 0 0 8px rgba(212, 165, 116, 0.6);
-        }
-
-        /* Cycle / session progress track */
-        .session-bar {
-            width: clamp(180px, 28vw, 260px);
-            height: 3px;
-            background: rgba(212, 165, 116, 0.12);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .session-fill {
-            height: 100%;
-            width: 0%;
-            background: rgba(212, 165, 116, 0.5);
-            border-radius: 3px;
-            transition: width 0.6s ease;
-        }
-
-        .progress-text {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(0.95rem, 1.8vw, 1.1rem);
-            color: var(--text-primary);
-            letter-spacing: 0.15em;
-        }
-
-        .session-text {
-            font-family: 'DM Sans', sans-serif;
-            font-size: clamp(0.65rem, 1vw, 0.75rem);
-            color: var(--text-muted);
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-        }
-
         .vignette {
             position: fixed;
             top: 0;
@@ -405,18 +339,6 @@
             <canvas id="orb" width="160" height="160"></canvas>
         </div>
         <div class="orb-label idle" id="orbLabel">Ready</div>
-
-        <!-- Progress lives inline below orb -->
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-text" id="progressText">Breathe In &nbsp;4s</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="session-bar">
-                <div class="session-fill" id="sessionFill"></div>
-            </div>
-            <div class="session-text" id="sessionText">Cycle 1 of 8</div>
-        </div>
     </div>
 
     <div class="overlay">
@@ -661,25 +583,14 @@
         const pauseBtn = document.getElementById('pauseBtn');
         const stopBtn = document.getElementById('stopBtn');
         const completeMsg = document.getElementById('completeMsg');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressFill = document.getElementById('progressFill');
-        const progressText = document.getElementById('progressText');
-        const sessionFill = document.getElementById('sessionFill');
-        const sessionText = document.getElementById('sessionText');
 
         function animatePhase(duration, phase) {
             const startTime = Date.now();
             const totalDuration = duration * 1000;
-            const phaseNames = { inhale: 'Breathe In', hold: 'Hold', exhale: 'Breathe Out' };
 
             const phaseInterval = setInterval(() => {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / totalDuration, 1);
-
-                // Phase progress bar
-                progressFill.style.width = `${progress * 100}%`;
-                const secondsLeft = Math.max(Math.ceil((totalDuration - elapsed) / 1000), 0);
-                progressText.textContent = `${phaseNames[phase]}\u2002${secondsLeft}s`;
 
                 if (phase === 'inhale') {
                     breathScale = 1 + progress * 0.5;
@@ -712,9 +623,6 @@
             pauseBtn.classList.remove('hidden');
             stopBtn.classList.remove('hidden');
             completeMsg.classList.remove('visible');
-            progressContainer.classList.add('visible');
-            sessionFill.style.width = '0%';
-            sessionText.textContent = `Cycle 1 of ${totalReps}`;
             setOrbState('inhale');
 
             runCycle();
@@ -728,11 +636,6 @@
                 completeExercise();
                 return;
             }
-
-            // Update session bar
-            const sessionProgress = (currentRep - 1) / totalReps;
-            sessionFill.style.width = `${sessionProgress * 100}%`;
-            sessionText.textContent = `Cycle ${currentRep} of ${totalReps}`;
 
             const inhaleTime = parseInt(document.getElementById('inhale').value);
             const holdTime = parseInt(document.getElementById('hold').value);
